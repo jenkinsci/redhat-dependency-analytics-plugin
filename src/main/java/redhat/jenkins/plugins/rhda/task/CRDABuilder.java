@@ -94,8 +94,8 @@ public class CRDABuilder extends Builder implements SimpleBuildStep, Serializabl
             crdaUuid = RHDAGlobalConfig.get().getUuid();
         }
         // Setting UUID as System property to send to java-api.
-        System.setProperty("rhda-token", crdaUuid);
-        System.setProperty("rhda-source", "jenkins-plugin");
+        System.setProperty("RHDA_TOKEN", crdaUuid);
+        System.setProperty("RHDA_SOURCE", "jenkins-plugin");
 
         logger.println("----- RHDA Analysis Begins -----");
 
