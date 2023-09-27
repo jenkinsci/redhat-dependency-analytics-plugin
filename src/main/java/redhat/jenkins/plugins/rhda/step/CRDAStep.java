@@ -190,8 +190,8 @@ public final class CRDAStep extends Step {
                 crdaUuid = RHDAGlobalConfig.get().getUuid();
             }
             // Setting UUID as System property to send to java-api.
-            System.setProperty("rhda-token", crdaUuid);
-            System.setProperty("rhda-source", "jenkins-plugin");
+            System.setProperty("RHDA-TOKEN", crdaUuid);
+            System.setProperty("RHDA_SOURCE", "jenkins-plugin");
 
             System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "");
             // flag for telemetry/uuid to pass to backend for SP
