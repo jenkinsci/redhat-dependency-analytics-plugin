@@ -51,6 +51,7 @@ import java.util.concurrent.ExecutionException;
 
 
 public class CRDABuilder extends Builder implements SimpleBuildStep, Serializable {
+    private static final long serialVersionUID = 1L;
 
     private String file;
     private boolean consentTelemetry = false;
@@ -85,14 +86,17 @@ public class CRDABuilder extends Builder implements SimpleBuildStep, Serializabl
 
         String crdaUuid;
         RHDAGlobalConfig globalConfig = RHDAGlobalConfig.get();
-//        logger.println("UUID Global: " + RHDAGlobalConfig.get().getUuid());
-        if(RHDAGlobalConfig.get().getUuid() == null){
+        if (globalConfig == null) {
+            globalConfig = new RHDAGlobalConfig();
+        }
+
+        if (globalConfig.getUuid() == null) {
             crdaUuid = UUID.randomUUID().toString();
             globalConfig.setUuid(crdaUuid);
+        } else {
+            crdaUuid = globalConfig.getUuid();
         }
-        else{
-            crdaUuid = RHDAGlobalConfig.get().getUuid();
-        }
+
         // Setting UUID as System property to send to java-api.
         System.setProperty("RHDA_TOKEN", crdaUuid);
         System.setProperty("RHDA_SOURCE", "jenkins-plugin");
