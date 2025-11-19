@@ -16,8 +16,8 @@
 
 package redhat.jenkins.plugins.rhda.action;
 
-import com.redhat.exhort.api.AnalysisReport;
 import hudson.model.Run;
+import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
 import jenkins.model.RunAction2;
 
 public class CRDAAction implements RunAction2 {
@@ -56,16 +56,15 @@ public class CRDAAction implements RunAction2 {
         this.report = report;
         this.url = url;
         this.jobtype = jobtype;
-
     }
 
     public String getUuid() {
-            return uuid;
+        return uuid;
     }
 
     public AnalysisReport getReport() {
         return report;
-	}
+    }
 
     @Override
     public String getIconFileName() {

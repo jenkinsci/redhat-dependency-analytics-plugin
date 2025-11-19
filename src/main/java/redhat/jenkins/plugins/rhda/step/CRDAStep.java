@@ -16,9 +16,6 @@
 
 package redhat.jenkins.plugins.rhda.step;
 
-import com.redhat.exhort.Api;
-import com.redhat.exhort.api.*;
-import com.redhat.exhort.impl.ExhortApi;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -27,6 +24,21 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.ArtifactArchiver;
 import hudson.util.FormValidation;
+import io.github.guacsec.trustifyda.Api;
+import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
+import io.github.guacsec.trustifyda.api.v5.ProviderReport;
+import io.github.guacsec.trustifyda.api.v5.Severity;
+import io.github.guacsec.trustifyda.impl.ExhortApi;
+import jakarta.servlet.ServletException;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.apache.commons.io.FileUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.workflow.steps.*;
@@ -38,18 +50,6 @@ import redhat.jenkins.plugins.rhda.task.CRDABuilder.BuilderDescriptorImpl;
 import redhat.jenkins.plugins.rhda.utils.Config;
 import redhat.jenkins.plugins.rhda.utils.RHDAGlobalConfig;
 import redhat.jenkins.plugins.rhda.utils.Utils;
-
-import javax.servlet.ServletException;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 public final class CRDAStep extends Step {
     private String file;
@@ -91,110 +91,14 @@ public final class CRDAStep extends Step {
 
     public static class Execution extends SynchronousNonBlockingStepExecution<String> {
 
-        private transient final CRDAStep step;
-        private String jenkinsPath;
+        private final transient CRDAStep step;
 
         protected Execution(CRDAStep step, StepContext context) {
             super(context);
             this.step = step;
             try {
-            	EnvVars envVars = context.get(EnvVars.class);
-            	jenkinsPath = envVars.get("PATH");
-
-                // setting system properties to pass to java-api
-                if(envVars.get("EXHORT_MVN_PATH") != null ){
-                    System.setProperty("EXHORT_MVN_PATH", envVars.get("EXHORT_MVN_PATH"));
-                }
-                else{
-                    System.clearProperty("EXHORT_MVN_PATH");
-                }
-
-                if(envVars.get("EXHORT_NPM_PATH") != null ){
-                    System.setProperty("EXHORT_NPM_PATH", envVars.get("EXHORT_NPM_PATH"));
-                }
-                else{
-                    System.clearProperty("EXHORT_NPM_PATH");
-                }
-
-                if(envVars.get("EXHORT_GO_PATH") != null ){
-                    System.setProperty("EXHORT_GO_PATH", envVars.get("EXHORT_GO_PATH"));
-                }
-                else{
-                    System.clearProperty("EXHORT_GO_PATH");
-                }
-
-                if(envVars.get("EXHORT_URL") != null ){
-                    System.setProperty("EXHORT_URL", envVars.get("EXHORT_URL"));
-                }
-                else{
-                    System.clearProperty("EXHORT_URL");
-                }
-                if(envVars.get("EXHORT_DEV_MODE") != null ){
-                    System.setProperty("EXHORT_DEV_MODE", envVars.get("EXHORT_DEV_MODE"));
-                }
-                else{
-                    System.clearProperty("EXHORT_DEV_MODE");
-                }
-
-                if(envVars.get("EXHORT_PYTHON3_PATH") != null ){
-                    System.setProperty("EXHORT_PYTHON3_PATH", envVars.get("EXHORT_PYTHON3_PATH"));
-                }
-                else{
-                    System.clearProperty("EXHORT_PYTHON3_PATH");
-                }
-
-                if(envVars.get("EXHORT_PIP3_PATH") != null ){
-                    System.setProperty("EXHORT_PIP3_PATH", envVars.get("EXHORT_PIP3_PATH"));
-                }
-                else{
-                    System.clearProperty("EXHORT_PIP3_PATH");
-                }
-
-                if(envVars.get("EXHORT_PYTHON_PATH") != null ){
-                    System.setProperty("EXHORT_PYTHON_PATH", envVars.get("EXHORT_PYTHON_PATH"));
-                }
-                else{
-                    System.clearProperty("EXHORT_PYTHON_PATH");
-                }
-
-                if(envVars.get("EXHORT_PIP_PATH") != null ){
-                    System.setProperty("EXHORT_PIP_PATH", envVars.get("EXHORT_PIP_PATH"));
-                }
-                else{
-                    System.clearProperty("EXHORT_PIP_PATH");
-                }
-
-                if(envVars.get("EXHORT_OSS_INDEX_USER") != null ){
-                    System.setProperty("EXHORT_OSS_INDEX_USER", envVars.get("EXHORT_OSS_INDEX_USER"));
-                }
-                else{
-                    System.clearProperty("EXHORT_OSS_INDEX_USER");
-                }
-
-                if(envVars.get("EXHORT_OSS_INDEX_TOKEN") != null ){
-                    System.setProperty("EXHORT_OSS_INDEX_TOKEN", envVars.get("EXHORT_OSS_INDEX_TOKEN"));
-                }
-                else{
-                    System.clearProperty("EXHORT_OSS_INDEX_TOKEN");
-                }
-                if(envVars.get("EXHORT_PIP_SHOW") != null ){
-                    System.setProperty("EXHORT_PIP_SHOW", envVars.get("EXHORT_PIP_SHOW"));
-                }
-                else{
-                    System.clearProperty("EXHORT_PIP_SHOW");
-                }
-                if(envVars.get("EXHORT_PIP_FREEZE") != null ){
-                    System.setProperty("EXHORT_PIP_FREEZE", envVars.get("EXHORT_PIP_FREEZE"));
-                }
-                else{
-                    System.clearProperty("EXHORT_PIP_FREEZE");
-                }
-                if(envVars.get("EXHORT_DEBUG") != null ){
-                    System.setProperty("EXHORT_DEBUG", envVars.get("EXHORT_DEBUG"));
-                }
-                else{
-                    System.clearProperty("EXHORT_DEBUG");
-                }
+                EnvVars envVars = context.get(EnvVars.class);
+                Utils.setTrustifyDaSystemProperties(envVars);
 
                 String crdaUuid;
                 RHDAGlobalConfig globalConfig = RHDAGlobalConfig.get();
@@ -216,8 +120,8 @@ public final class CRDAStep extends Step {
                 System.setProperty("CONSENT_TELEMETRY", String.valueOf(step.getConsentTelemetry()));
 
             } catch (IOException | InterruptedException e) {
-				e.printStackTrace();
-			}
+                e.printStackTrace();
+            }
         }
 
         @Override
@@ -235,7 +139,8 @@ public final class CRDAStep extends Step {
             }
             // Check if the specified file or path exists
             if (!Files.exists(manifestPath)) {
-                logger.println("The specified file or path does not exist or is inaccessible. Please configure the build properly and retry.");
+                logger.println(
+                        "The specified file or path does not exist or is inaccessible. Please configure the build properly and retry.");
                 return Config.EXIT_FAILED;
             }
 
@@ -248,18 +153,28 @@ public final class CRDAStep extends Step {
                 saveHtmlReport(mixedStackReport.get().html, listener, workspace);
                 // Archiving the report
                 ArtifactArchiver archiver = new ArtifactArchiver("dependency-analytics-report.html");
-                archiver.perform(run, workspace, getContext().get(EnvVars.class), getContext().get(Launcher.class), listener);
+                archiver.perform(
+                        run,
+                        workspace,
+                        getContext().get(EnvVars.class),
+                        getContext().get(Launcher.class),
+                        listener);
 
                 logger.println("Click on the RHDA Stack Report icon to view the detailed report.");
                 logger.println("----- RHDA Analysis Ends -----");
-                run.addAction(new CRDAAction(System.getProperty("RHDA-TOKEN"), mixedStackReport.get().json, workspace + "/dependency-analysis-report.html", "pipeline"));
-//                isHighestVulnerabilityAllowedExceeded
-                Set<Severity> allHighestSeverities = Utils.getAllHighestSeveritiesFromResponse(mixedStackReport.get().json);
-                var highestAllowedSeverity = getHighestAllowedSeverity( getContext().get(EnvVars.class).get("HIGHEST_ALLOWED_VULN_SEVERITY"));
-                if(Utils.isHighestVulnerabilityAllowedExceeded(allHighestSeverities, highestAllowedSeverity )) {
+                run.addAction(new CRDAAction(
+                        System.getProperty("RHDA-TOKEN"),
+                        mixedStackReport.get().json,
+                        workspace + "/dependency-analysis-report.html",
+                        "pipeline"));
+                //                isHighestVulnerabilityAllowedExceeded
+                Set<Severity> allHighestSeverities =
+                        Utils.getAllHighestSeveritiesFromResponse(mixedStackReport.get().json);
+                var highestAllowedSeverity = getHighestAllowedSeverity(
+                        getContext().get(EnvVars.class).get("HIGHEST_ALLOWED_VULN_SEVERITY"));
+                if (Utils.isHighestVulnerabilityAllowedExceeded(allHighestSeverities, highestAllowedSeverity)) {
                     return Config.EXIT_VULNERABLE;
-                }
-                else {
+                } else {
                     return Config.EXIT_SUCCESS;
                 }
 
@@ -271,7 +186,8 @@ public final class CRDAStep extends Step {
             return Config.EXIT_FAILED;
         }
 
-        private void processReport(AnalysisReport report, TaskListener listener) throws ExecutionException, InterruptedException {
+        private void processReport(AnalysisReport report, TaskListener listener)
+                throws ExecutionException, InterruptedException {
             PrintStream logger = listener.getLogger();
             logger.println("Dependencies");
             logger.println("  Total Scanned     : " + report.getScanned().getTotal());
@@ -288,13 +204,20 @@ public final class CRDAStep extends Step {
                             logger.println("  Source: " + s.substring(0, 1).toUpperCase() + s.substring(1));
                             if (value.getSources() != null) {
                                 logger.println("    Vulnerabilities");
-                                logger.println("      Total         : " + source.getSummary().getTotal());
-                                logger.println("      Direct        : " + source.getSummary().getDirect());
-                                logger.println("      Transitive    : " + source.getSummary().getTransitive());
-                                logger.println("      Critical      : " + source.getSummary().getCritical());
-                                logger.println("      High          : " + source.getSummary().getHigh());
-                                logger.println("      Medium        : " + source.getSummary().getMedium());
-                                logger.println("      Low           : " + source.getSummary().getLow());
+                                logger.println("      Total         : "
+                                        + source.getSummary().getTotal());
+                                logger.println("      Direct        : "
+                                        + source.getSummary().getDirect());
+                                logger.println("      Transitive    : "
+                                        + source.getSummary().getTransitive());
+                                logger.println("      Critical      : "
+                                        + source.getSummary().getCritical());
+                                logger.println("      High          : "
+                                        + source.getSummary().getHigh());
+                                logger.println("      Medium        : "
+                                        + source.getSummary().getMedium());
+                                logger.println("      Low           : "
+                                        + source.getSummary().getLow());
                                 logger.println("");
                             }
                         });
@@ -308,39 +231,37 @@ public final class CRDAStep extends Step {
             PrintStream logger = listener.getLogger();
             File file = new File(workspace + "/dependency-analytics-report.html");
             FileUtils.writeByteArrayToFile(file, html);
-            logger.println("You can find the latest detailed HTML report in your workspace and in your build under Build Artifacts.");
+            logger.println(
+                    "You can find the latest detailed HTML report in your workspace and in your build under Build Artifacts.");
         }
 
         private static final long serialVersionUID = 1L;
     }
 
-
     private static Severity getHighestAllowedSeverity(String highestAllowedVulnSeverity) {
-        if(Objects.isNull(highestAllowedVulnSeverity)) {
+        if (Objects.isNull(highestAllowedVulnSeverity)) {
             return Severity.MEDIUM;
-        }
-        else {
+        } else {
             return Severity.fromValue(highestAllowedVulnSeverity.toUpperCase());
         }
     }
-
 
     @Extension
     @Symbol("rhdaAnalysis")
     public static class DescriptorImpl extends StepDescriptor {
 
-    	private final BuilderDescriptorImpl builderDescriptor;
+        private final BuilderDescriptorImpl builderDescriptor;
 
         public DescriptorImpl() {
-          builderDescriptor = new BuilderDescriptorImpl();
+            builderDescriptor = new BuilderDescriptorImpl();
         }
-        
+
         @SuppressWarnings("unused")
         public FormValidation doCheckFile(@QueryParameter String file) throws IOException, ServletException {
-          return builderDescriptor.doCheckFile(file);
+            return builderDescriptor.doCheckFile(file);
         }
-    	
-    	@Override
+
+        @Override
         public String getFunctionName() {
             return "rhdaAnalysis";
         }
@@ -351,8 +272,9 @@ public final class CRDAStep extends Step {
         }
 
         @Override
-        public Set< Class<?>> getRequiredContext() {
-            return Collections.unmodifiableSet(new HashSet<Class<?>>(Arrays.asList(FilePath.class, Run.class, TaskListener.class)));
+        public Set<Class<?>> getRequiredContext() {
+            return Collections.unmodifiableSet(
+                    new HashSet<Class<?>>(Arrays.asList(FilePath.class, Run.class, TaskListener.class)));
         }
     }
 }

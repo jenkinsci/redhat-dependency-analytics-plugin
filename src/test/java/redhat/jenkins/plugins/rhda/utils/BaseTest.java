@@ -39,7 +39,7 @@ public class BaseTest {
     protected String getFileFromString(String fileName, String content) {
         Path tmpFile;
         try {
-            var tmpDir = Files.createTempDirectory("exhort_test_");
+            var tmpDir = Files.createTempDirectory("rhda_plugin_test_");
             tmpFile = Files.createFile(tmpDir.resolve(fileName));
             Files.write(tmpFile, content.getBytes());
 
@@ -48,5 +48,4 @@ public class BaseTest {
         }
         return tmpFile.toString();
     }
-
 }

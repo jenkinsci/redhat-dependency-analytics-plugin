@@ -47,32 +47,34 @@ To set a custom path for package managers use environment variables.
 
 - Click on Manage Jenkins -> System, scroll down to Global properties/Environment Variables.
 - Set the corresponding custom path based on your project: 
-  - For Maven - Set Name: _EXHORT_MVN_PATH_ and Value: `/path/to/custom/mvn`.
-  - For NPM - Set Name: _EXHORT_NPM_PATH_ and Value: `/path/to/custom/npm`.
-  - For GO - Set Name: _EXHORT_GO_PATH_ and Value: `/path/to/custom/go`.
-  - For Python3 - Set Name: _EXHORT_PYTHON3_PATH_ and Value: `/path/to/custom/python3`.
-  - For Pip3 - Set Name: _EXHORT_PIP3_PATH_ and Value: `/path/to/custom/pip3`.
-  - For Python - Set Name: _EXHORT_PYTHON_PATH_ and Value: `/path/to/custom/python`.
-  - For Pip - Set Name: _EXHORT_PIP_PATH_ and Value: `/path/to/custom/pip`.
+  - For Maven - Set Name: `TRUSTIFY_DA_MVN_PATH` and Value: `/path/to/custom/mvn`.
+  - For Gradle - Set Name: `TRUSTIFY_DA_GRADLE_PATH` and Value: `/path/to/custom/gradle`.
+  - For NPM - Set Name: `TRUSTIFY_DA_NPM_PATH` and Value: `/path/to/custom/npm`.
+  - For Yarn - Set Name: `TRUSTIFY_DA_YARN_PATH` and Value: `/path/to/custom/yarn`.
+  - For PNPM - Set Name: `TRUSTIFY_DA_PNPM_PATH` and Value: `/path/to/custom/pnpm`.
+  - For GO - Set Name: `TRUSTIFY_DA_GO_PATH` and Value: `/path/to/custom/go`.
+  - For Python3 - Set Name: `TRUSTIFY_DA_PYTHON3_PATH` and Value: `/path/to/custom/python3`.
+  - For Pip3 - Set Name: `TRUSTIFY_DA_PIP3_PATH` and Value: `/path/to/custom/pip3`.
+  - For Python - Set Name: `TRUSTIFY_DA_PYTHON_PATH` and Value: `/path/to/custom/python`.
+  - For Pip - Set Name: `TRUSTIFY_DA_PIP_PATH` and Value: `/path/to/custom/pip`.
 
 #### General Configuration
  Click <em>Manage Jenkins</em>. Click <em>System</em>, and scroll down to <em>Global properties/Environment Variables</em>. Here you can configure the following settings:
- - name: `EXHORT_DEBUG`, Value: `true` , Description: Will invoke the analysis in verbose mode and will print a lot of useful logs to job output console - good for debugging, Default value is false.
 
+ - name: `TRUSTIFY_DA_BACKEND_URL`. Description: Will allow you to use a different Red Hat Dependency Analytics Backend. Defaults to the production environment.
 
- - name: `EXHORT_DEV_MODE`, value: `true`, Description: Will invoke the Analysis on Staging Instance Of EXHORT Service, Default: false ( EXHORT Production Instance)
+ - name: `TRUSTIFY_DA_PROXY_URL`. Description: You can configure a proxy for all HTTP requests made by the API. This is useful when your environment requires going through a proxy to access external services.
 
-
- - name: _HIGHEST_ALLOWED_VULN_SEVERITY_, Possible values: [`LOW`,`MEDIUM`,`HIGH`,`CRITICAL`], Description: will determine what is the highest allowed Severity of a vulnerability found for a given package/dependency in the analysis, for the analysis to be considered Successful(RC=0) and not Vulnerable(RC=2), Default value is `MEDIUM`
+ - name: `HIGHEST_ALLOWED_VULN_SEVERITY`, Possible values: [`LOW`,`MEDIUM`,`HIGH`,`CRITICAL`], Description: will determine what is the highest allowed Severity of a vulnerability found for a given package/dependency in the analysis, for the analysis to be considered Successful(RC=0) and not Vulnerable(RC=2), Default value is `MEDIUM`
 
 #### Python Pipeline Configuration
  For Python PIP packages, you can use the specific Python and PIP binaries during the invocation of the analysis. You can also specify these binaries elsewhere in your pipeline jobs, such as a stage environment, or another agent or node. Red Hat Dependency Analytics gives you maximum flexibility with the Python and PIP versions. You do not have to enforce the user to install different Python and PIP versions just to adapt it to the exact `requirements.txt` list of package versions. Python is very sensitive to versioning, for each Python version, there is a limited range of supported versions for a package.
  There are two environment variables:
-  1. _EXHORT_PIP_FREEZE_
-  2. _EXHORT_PIP_SHOW_ 
+  1. `TRUSTIFY_DA_PIP_FREEZE`
+  2. `TRUSTIFY_DA_PIP_SHOW`
  
 
- This feature enables you to use Python for different agents. For example, a Python container image containing the desired Python version you want to do the analysis with. You can install the input requirements.txt file using PIP within the container image, and then you can use the following commands to generate the output for a files in workspace : pip freeze --all and pip show <list_of_packages>. Next, run base64 to encode the output from these commands, and set the EXHORT_PIP_FREEZE and EXHORT_PIP_SHOW environment variables with that encoded output, respectively.
+ This feature enables you to use Python for different agents. For example, a Python container image containing the desired Python version you want to do the analysis with. You can install the input requirements.txt file using PIP within the container image, and then you can use the following commands to generate the output for a files in workspace : pip freeze --all and pip show <list_of_packages>. Next, run base64 to encode the output from these commands, and set the `TRUSTIFY_DA_PIP_FREEZE` and `TRUSTIFY_DA_PIP_SHOW` environment variables with that encoded output, respectively.
 Example pipeline with proper usage:
 
 ```yaml
@@ -115,7 +117,7 @@ node {
         def pipShowB64= sh(script: 'cat pip-show.txt | base64 -w0',returnStdout: true ).trim()
         echo "pipFreezeB64= ${pipFreezeB64}"
         echo "pipShowpipShowB64= ${pipShowB64}"
-        withEnv(["EXHORT_PIP_FREEZE=${pipFreezeB64}","EXHORT_PIP_SHOW=${pipShowB64}"]) {
+        withEnv(["TRUSTIFY_DA_PIP_FREEZE=${pipFreezeB64}","TRUSTIFY_DA_PIP_SHOW=${pipShowB64}"]) {
 
             rhdaAnalysis consentTelemetry: true, file: "${WORKSPACE}/requirementsDir/requirements.txt"
         }
@@ -137,8 +139,9 @@ node {
 - Click on Configure -> Build Trigger -> Add Build Step. Select `Invoke Red Hat Dependency Analytics (RHDA)`.
 - Filepath (Mandatory): Provide the filepath for the manifest file. We currently support the following
 	- Maven: pom.xml
+  - Gradle: build.gradle / build.gradle.kts
 	- Python: requirements.txt
-	- Npm: package.json
+	- Npm/Pnpm/Yarn: package.json
 	- Golang: go.mod
 - Usage Statistics (Optional): Consent given to red hat to collect some usage statistics to improve the plugin and report. Default consent is false.
 ![](./images/configOption1.png)
@@ -146,7 +149,7 @@ node {
   **NOTE:** If you get a Java runtime error because the build can not find the `mvn` binary, try doing the following steps:
   1. From the Jenkins Dashboard, click **Manage Jenkins** -> **Tools** -> **Maven Installations** -> click **Add Maven** -> Enter a name on **Maven Name** -> check **Install automatically** -> click **Save**
   2. From the Jenkins Dashboard, click **Manage Jenkins** -> **System** -> **Check Environment Variables**, click **Add**.
-  3. Enter _EXHORT_MVN_PATH_ as the variable name, with the value pointing to the `mvn` binary from the Maven Integration installation.
+  3. Enter _TRUSTIFY_DA_MVN_PATH_ as the variable name, with the value pointing to the `mvn` binary from the Maven Integration installation.
      For example, a value of `$JENKINS_HOME/tools/hudson.tasks.Maven_MavenInstallation/<Maven Name from Step 1>/bin/mvn`.
   4. Include **Invoke top-level maven targets** as a build step by specifying the Maven version, and add **clean install** as a goal for the new pipeline item.
   
