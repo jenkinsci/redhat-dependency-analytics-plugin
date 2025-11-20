@@ -36,6 +36,11 @@ import org.json.JSONObject;
 
 public class Utils {
 
+    public static final String TRUST_DA_TOKEN_PROPERTY = "TRUST_DA_TOKEN";
+    public static final String TRUST_DA_SOURCE_PROPERTY = "TRUST_DA_SOURCE";
+    public static final String TRUST_DA_SOURCE_VALUE = "jenkins-plugin";
+    public static final String CONSENT_TELEMETRY_PROPERTY = "CONSENT_TELEMETRY";
+
     static final String[] TRUSTIFY_DA_SYSTEM_PROPERTIES = {
         "TRUSTIFY_DA_DEBUG",
         "TRUSTIFY_DA_PROXY_URL",

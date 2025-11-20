@@ -101,13 +101,13 @@ public class CRDABuilder extends Builder implements SimpleBuildStep, Serializabl
         }
 
         // Setting UUID as System property to send to java-api.
-        System.setProperty("RHDA_TOKEN", crdaUuid);
-        System.setProperty("RHDA_SOURCE", "jenkins-plugin");
+        System.setProperty(Utils.TRUST_DA_TOKEN_PROPERTY, crdaUuid);
+        System.setProperty(Utils.TRUST_DA_SOURCE_PROPERTY, Utils.TRUST_DA_SOURCE_VALUE);
 
         logger.println("----- RHDA Analysis Begins -----");
 
         EnvVars envVars = getEnvVars(run, listener);
-        System.setProperty("CONSENT_TELEMETRY", String.valueOf(this.getConsentTelemetry()));
+        System.setProperty(Utils.CONSENT_TELEMETRY_PROPERTY, String.valueOf(this.getConsentTelemetry()));
         Utils.setTrustifyDaSystemProperties(envVars);
 
         Path manifestPath = Paths.get(getFile());

@@ -1,19 +1,17 @@
 package redhat.jenkins.plugins.rhda.utils;
 
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import hudson.EnvVars;
 import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
 import io.github.guacsec.trustifyda.api.v5.Severity;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import org.junit.Test;
 
 public class UtilsTest extends BaseTest {
 

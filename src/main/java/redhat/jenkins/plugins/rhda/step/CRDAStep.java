@@ -36,12 +36,22 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.apache.commons.io.FileUtils;
 import org.jenkinsci.Symbol;
-import org.jenkinsci.plugins.workflow.steps.*;
+import org.jenkinsci.plugins.workflow.steps.Step;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
+import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -113,11 +123,11 @@ public final class CRDAStep extends Step {
                     crdaUuid = globalConfig.getUuid();
                 }
                 // Setting UUID as System property to send to java-api.
-                System.setProperty("RHDA-TOKEN", crdaUuid);
-                System.setProperty("RHDA_SOURCE", "jenkins-plugin");
+                System.setProperty(Utils.TRUST_DA_TOKEN_PROPERTY, crdaUuid);
+                System.setProperty(Utils.TRUST_DA_SOURCE_PROPERTY, Utils.TRUST_DA_SOURCE_VALUE);
 
                 // flag for telemetry/uuid to pass to backend for SP
-                System.setProperty("CONSENT_TELEMETRY", String.valueOf(step.getConsentTelemetry()));
+                System.setProperty(Utils.CONSENT_TELEMETRY_PROPERTY, String.valueOf(step.getConsentTelemetry()));
 
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
@@ -163,7 +173,7 @@ public final class CRDAStep extends Step {
                 logger.println("Click on the RHDA Stack Report icon to view the detailed report.");
                 logger.println("----- RHDA Analysis Ends -----");
                 run.addAction(new CRDAAction(
-                        System.getProperty("RHDA-TOKEN"),
+                        System.getProperty("TRUST_DA_TOKEN"),
                         mixedStackReport.get().json,
                         workspace + "/dependency-analysis-report.html",
                         "pipeline"));
