@@ -17,9 +17,8 @@
 package redhat.jenkins.plugins.rhda.utils;
 
 public class Config {
-	
-	public static final String EXIT_SUCCESS = "0";
-	public static final String EXIT_FAILED = "1";
-	public static final String EXIT_VULNERABLE = "2";
 
+    public static final String EXIT_SUCCESS = "0";
+    public static final String EXIT_FAILED = "1";
+    public static final String EXIT_VULNERABLE = "2";
 }

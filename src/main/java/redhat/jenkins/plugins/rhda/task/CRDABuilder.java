@@ -16,10 +16,6 @@
 
 package redhat.jenkins.plugins.rhda.task;
 
-import com.redhat.exhort.Api;
-import com.redhat.exhort.api.AnalysisReport;
-import com.redhat.exhort.api.ProviderReport;
-import com.redhat.exhort.impl.ExhortApi;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -31,15 +27,15 @@ import hudson.tasks.ArtifactArchiver;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
-import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.io.FileUtils;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
-import redhat.jenkins.plugins.rhda.action.CRDAAction;
-import redhat.jenkins.plugins.rhda.utils.RHDAGlobalConfig;
-
-import java.io.*;
+import io.github.guacsec.trustifyda.Api;
+import io.github.guacsec.trustifyda.api.v5.AnalysisReport;
+import io.github.guacsec.trustifyda.api.v5.ProviderReport;
+import io.github.guacsec.trustifyda.impl.ExhortApi;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,7 +43,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
+import jenkins.tasks.SimpleBuildStep;
+import org.apache.commons.io.FileUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import redhat.jenkins.plugins.rhda.action.CRDAAction;
+import redhat.jenkins.plugins.rhda.utils.RHDAGlobalConfig;
+import redhat.jenkins.plugins.rhda.utils.Utils;
 
 public class CRDABuilder extends Builder implements SimpleBuildStep, Serializable {
     private static final long serialVersionUID = 1L;
@@ -80,7 +83,8 @@ public class CRDABuilder extends Builder implements SimpleBuildStep, Serializabl
     }
 
     @Override
-    public void perform(Run<?, ?> run, FilePath workspace, EnvVars env, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+    public void perform(Run<?, ?> run, FilePath workspace, EnvVars env, Launcher launcher, TaskListener listener)
+            throws IOException, InterruptedException {
         PrintStream logger = listener.getLogger();
 
         String crdaUuid;
@@ -97,75 +101,14 @@ public class CRDABuilder extends Builder implements SimpleBuildStep, Serializabl
         }
 
         // Setting UUID as System property to send to java-api.
-        System.setProperty("RHDA_TOKEN", crdaUuid);
-        System.setProperty("RHDA_SOURCE", "jenkins-plugin");
+        System.setProperty(Utils.TRUST_DA_TOKEN_PROPERTY, crdaUuid);
+        System.setProperty(Utils.TRUST_DA_SOURCE_PROPERTY, Utils.TRUST_DA_SOURCE_VALUE);
 
         logger.println("----- RHDA Analysis Begins -----");
 
         EnvVars envVars = getEnvVars(run, listener);
-        System.setProperty("CONSENT_TELEMETRY", String.valueOf(this.getConsentTelemetry()));
-        if (envVars != null) {
-            // setting system properties to pass to java-api
-            if (envVars.get("EXHORT_MVN_PATH") != null) {
-                System.setProperty("EXHORT_MVN_PATH", envVars.get("EXHORT_MVN_PATH"));
-            } else {
-                System.clearProperty("EXHORT_MVN_PATH");
-            }
-
-            if (envVars.get("EXHORT_NPM_PATH") != null) {
-                System.setProperty("EXHORT_NPM_PATH", envVars.get("EXHORT_NPM_PATH"));
-            } else {
-                System.clearProperty("EXHORT_NPM_PATH");
-            }
-
-            if (envVars.get("EXHORT_GO_PATH") != null) {
-                System.setProperty("EXHORT_GO_PATH", envVars.get("EXHORT_GO_PATH"));
-            } else {
-                System.clearProperty("EXHORT_GO_PATH");
-            }
-
-            if (envVars.get("EXHORT_URL") != null) {
-                System.setProperty("EXHORT_URL", envVars.get("EXHORT_URL"));
-            } else {
-                System.clearProperty("EXHORT_URL");
-            }
-
-            if (envVars.get("EXHORT_PYTHON3_PATH") != null) {
-                System.setProperty("EXHORT_PYTHON3_PATH", envVars.get("EXHORT_PYTHON3_PATH"));
-            } else {
-                System.clearProperty("EXHORT_PYTHON3_PATH");
-            }
-
-            if (envVars.get("EXHORT_PIP3_PATH") != null) {
-                System.setProperty("EXHORT_PIP3_PATH", envVars.get("EXHORT_PIP3_PATH"));
-            } else {
-                System.clearProperty("EXHORT_PIP3_PATH");
-            }
-
-            if (envVars.get("EXHORT_PYTHON_PATH") != null) {
-                System.setProperty("EXHORT_PYTHON_PATH", envVars.get("EXHORT_PYTHON_PATH"));
-            } else {
-                System.clearProperty("EXHORT_PYTHON_PATH");
-            }
-
-            if (envVars.get("EXHORT_PIP_PATH") != null) {
-                System.setProperty("EXHORT_PIP_PATH", envVars.get("EXHORT_PIP_PATH"));
-            } else {
-                System.clearProperty("EXHORT_PIP_PATH");
-            }
-
-            if (envVars.get("EXHORT_OSS_INDEX_USER") != null) {
-                System.setProperty("EXHORT_OSS_INDEX_USER", envVars.get("EXHORT_OSS_INDEX_USER"));
-            } else {
-                System.clearProperty("EXHORT_OSS_INDEX_USER");
-            }
-
-            if (envVars.get("EXHORT_OSS_INDEX_TOKEN") != null) {
-                System.setProperty("EXHORT_OSS_INDEX_TOKEN", envVars.get("EXHORT_OSS_INDEX_TOKEN"));
-            } else {
-                System.clearProperty("EXHORT_OSS_INDEX_TOKEN");
-            }
-        }
+        System.setProperty(Utils.CONSENT_TELEMETRY_PROPERTY, String.valueOf(this.getConsentTelemetry()));
+        Utils.setTrustifyDaSystemProperties(envVars);
 
         Path manifestPath = Paths.get(getFile());
         if (manifestPath.getParent() == null) {
@@ -173,7 +116,8 @@ public class CRDABuilder extends Builder implements SimpleBuildStep, Serializabl
         }
         // Check if the specified file or path exists
         if (!Files.exists(manifestPath)) {
-            throw new FileNotFoundException("The specified file or path does not exist or is inaccessible. Please configure the build properly and retry.");
+            throw new FileNotFoundException(
+                    "The specified file or path does not exist or is inaccessible. Please configure the build properly and retry.");
         }
 
         // instantiate the Exhort(crda) API implementation
@@ -192,7 +136,11 @@ public class CRDABuilder extends Builder implements SimpleBuildStep, Serializabl
             archiver.perform(run, workspace, envVars, launcher, listener);
             logger.println("Click on the RHDA Stack Report icon to view the detailed report.");
             logger.println("----- RHDA Analysis Ends -----");
-            run.addAction(new CRDAAction(crdaUuid, mixedStackReport.get().json, workspace + "/dependency-analysis-report.html", "freestyle"));
+            run.addAction(new CRDAAction(
+                    crdaUuid,
+                    mixedStackReport.get().json,
+                    workspace + "/dependency-analysis-report.html",
+                    "freestyle"));
         } catch (ExecutionException e) {
             logger.println("error");
             e.printStackTrace(logger);
@@ -237,7 +185,8 @@ public class CRDABuilder extends Builder implements SimpleBuildStep, Serializabl
         }
     }
 
-    private void processReport(AnalysisReport report, TaskListener listener) throws ExecutionException, InterruptedException {
+    private void processReport(AnalysisReport report, TaskListener listener)
+            throws ExecutionException, InterruptedException {
         PrintStream logger = listener.getLogger();
         logger.println("Dependencies");
         logger.println("  Total Scanned     : " + report.getScanned().getTotal());
@@ -254,13 +203,20 @@ public class CRDABuilder extends Builder implements SimpleBuildStep, Serializabl
                         logger.println("  Source: " + s.substring(0, 1).toUpperCase() + s.substring(1));
                         if (value.getSources() != null) {
                             logger.println("    Vulnerabilities");
-                            logger.println("      Total         : " + source.getSummary().getTotal());
-                            logger.println("      Direct        : " + source.getSummary().getDirect());
-                            logger.println("      Transitive    : " + source.getSummary().getTransitive());
-                            logger.println("      Critical      : " + source.getSummary().getCritical());
-                            logger.println("      High          : " + source.getSummary().getHigh());
-                            logger.println("      Medium        : " + source.getSummary().getMedium());
-                            logger.println("      Low           : " + source.getSummary().getLow());
+                            logger.println("      Total         : "
+                                    + source.getSummary().getTotal());
+                            logger.println("      Direct        : "
+                                    + source.getSummary().getDirect());
+                            logger.println("      Transitive    : "
+                                    + source.getSummary().getTransitive());
+                            logger.println("      Critical      : "
+                                    + source.getSummary().getCritical());
+                            logger.println("      High          : "
+                                    + source.getSummary().getHigh());
+                            logger.println("      Medium        : "
+                                    + source.getSummary().getMedium());
+                            logger.println("      Low           : "
+                                    + source.getSummary().getLow());
                             logger.println("");
                         }
                     });
@@ -270,11 +226,12 @@ public class CRDABuilder extends Builder implements SimpleBuildStep, Serializabl
         logger.println("");
     }
 
-    private void saveHtmlReport(byte[] html, TaskListener listener, FilePath workspace) throws IOException, InterruptedException {
+    private void saveHtmlReport(byte[] html, TaskListener listener, FilePath workspace)
+            throws IOException, InterruptedException {
         PrintStream logger = listener.getLogger();
         File file = new File(workspace + "/dependency-analytics-report.html");
         FileUtils.writeByteArrayToFile(file, html);
-        logger.println("You can find the latest detailed HTML report in your workspace and in your build under Build Artifacts.");
+        logger.println(
+                "You can find the latest detailed HTML report in your workspace and in your build under Build Artifacts.");
     }
-
 }
