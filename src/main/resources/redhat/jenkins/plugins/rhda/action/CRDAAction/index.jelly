@@ -56,12 +56,19 @@
 
         // Draw the chart and set the chart values
         function drawChart(chartId, low, medium, high, critical) {
+            // Calculate total and percentages
+            var total = low + medium + high + critical;
+            function pct(val) {
+                if (total === 0) return '0%';
+                return Math.round((val / total) * 100) + '%';
+            }
+
             var data = google.visualization.arrayToDataTable([
                 ['Severity', 'Vulnerabilities'],
-                ['Low', low],
-                ['Medium', medium],
-                ['High', high],
-                ['Critical', critical]
+                ['Critical (' + pct(critical) + ')', critical],
+                ['High (' + pct(high) + ')', high],
+                ['Medium (' + pct(medium) + ')', medium],
+                ['Low (' + pct(low) + ')', low]
             ]);
 
             var options = {
@@ -74,12 +81,14 @@
                 legend: {position: 'right', textStyle: {fontSize: 13}},
                 fontSize: 13,
                 slices: {
-                    0: {color: '#ffc107'},  // Low - Yellow
-                    1: {color: '#fd7e14'},  // Medium - Orange
-                    2: {color: '#dc3545'},  // High - Red
-                    3: {color: '#8b0000'}   // Critical - Dark Red
+                    0: {color: '#8b0000'},   // Critical - Dark Red
+                    1: {color: '#dc3545'},  // High - Red
+                    2: {color: '#ffa500'},  // Medium - Orange
+                    3: {color: '#5ba352'}  // Low - Green
                 },
-                chartArea: {width: '90%', height: '80%'}
+                chartArea: {width: '90%', height: '80%'},
+                tooltip: {trigger: 'none'},
+                enableInteractivity: false
             };
 
             var chartDivId = 'vulnchart_' + chartId;
