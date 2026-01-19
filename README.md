@@ -209,8 +209,11 @@ This provides the count and types of vulnerabilities found in the dependency sta
 
 ### 2. RHDA Stack Report
 After every successful analysis, you can find a new icon added in the left panel named
-`RHDA Stack Report` . Click on this icon to view the report in graphical form. Here too, we provide a button to redirect to the detailed stack report UI.
-![](./images/stackReport.png)
+`RHDA Stack Report`. Click on this icon to view the report in graphical form. You will see the details for each Provider and Source retrieved.
+![](./images/stackReport1.png)
+
+At the end you will also find a button to download an extended HTML version of the report.
+![](./images/stackReport2.png)
 
 ### 3. Detailed RHDA Stack Report
 The stack report can be accessed via 2 ways, as mentioned in point number 1 (via url) and 2 (via button click). The report provides comprehensive details about each vulnerability, each dependency in the stack along with the license analysis and the recommended companions.
