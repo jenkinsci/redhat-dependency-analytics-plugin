@@ -68,6 +68,11 @@ To set a custom path for package managers use environment variables.
  - name: `HIGHEST_ALLOWED_VULN_SEVERITY`, Possible values: [`LOW`,`MEDIUM`,`HIGH`,`CRITICAL`], Description: will determine what is the highest allowed Severity of a vulnerability found for a given package/dependency in the analysis, for the analysis to be considered Successful(RC=0) and not Vulnerable(RC=2), Default value is `MEDIUM`
 
 #### Python Pipeline Configuration
+
+By default, Python support assumes that the package is installed using the pip/pip3 binary on the system PATH, or of the customized Binaries passed to environment variables. If the package is not installed , then an error will be thrown.
+
+There is an experimental feature of installing the requirement.txt on a virtual env(only python3 or later is supported for this feature) - in this case, it's important to pass in a path to python3 binary as `TRUSTIFY_DA_PYTHON3_PATH` or instead make sure that python3 is on the system path. in such case, You can use that feature by setting environment variable `TRUSTIFY_DA_PYTHON_VIRTUAL_ENV` to true
+
  For Python PIP packages, you can use the specific Python and PIP binaries during the invocation of the analysis. You can also specify these binaries elsewhere in your pipeline jobs, such as a stage environment, or another agent or node. Red Hat Dependency Analytics gives you maximum flexibility with the Python and PIP versions. You do not have to enforce the user to install different Python and PIP versions just to adapt it to the exact `requirements.txt` list of package versions. Python is very sensitive to versioning, for each Python version, there is a limited range of supported versions for a package.
  There are two environment variables:
   1. `TRUSTIFY_DA_PIP_FREEZE`
@@ -131,7 +136,15 @@ node {
 }
 ```
  
- 
+##### "Best Efforts Installation"
+Since Python pip packages are very sensitive/picky regarding python version changes( every small range of versions is only tailored for a certain python version), I'm introducing this feature, that tries to install all packages in requirements.txt onto created virtual environment while disregarding versions declared for packages in requirements.txt This increasing the chances and the probability a lot that the automatic installation will succeed.
+
+###### Usage
+
+A New setting is introduced - `TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS` (as both env variable/key in options object)
+
+`TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS="false"` - install requirements.txt while respecting declared versions for all packages.
+`TRUSTIFY_DA_PYTHON_INSTALL_BEST_EFFORTS="true"` - install all packages from requirements.txt, not respecting the declared version, but trying to install a version tailored for the used python version, when using this setting,you must set setting `MATCH_MANIFEST_VERSIONS="false"`
 
 ### Using The Plugin
 
