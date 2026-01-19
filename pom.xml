@@ -37,7 +37,7 @@
     <ant.version>1.10.12</ant.version>
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
     <quarkus.platform.version>3.29.3</quarkus.platform.version>
-    <trustifyda.version>0.0.9</trustifyda.version>
+    <trustifyda.version>0.0.12</trustifyda.version>
     <jakarta.servlet-api.version>5.0.0</jakarta.servlet-api.version>
     <bom.version>5638.v484059726739</bom.version>
     <commons-codec.version>1.20.0</commons-codec.version>
