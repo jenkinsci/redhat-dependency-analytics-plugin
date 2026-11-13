@@ -37,14 +37,14 @@
     <ant.version>1.10.12</ant.version>
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
     <quarkus.platform.version>3.29.3</quarkus.platform.version>
-    <trustifyda.version>0.0.12</trustifyda.version>
+    <trustifyda.version>0.0.14</trustifyda.version>
     <jakarta.servlet-api.version>5.0.0</jakarta.servlet-api.version>
     <bom.version>5638.v484059726739</bom.version>
     <commons-codec.version>1.20.0</commons-codec.version>
     <commons-io.version>2.21.0</commons-io.version>
     <plexus-utils.version>3.6.0</plexus-utils.version>
-    <plexus-archiver.version>4.6.2</plexus-archiver.version>
-    <json.version>20220320</json.version>
+    <plexus-archiver.version>4.8.0</plexus-archiver.version>
+    <json.version>20230227</json.version>
     <byte-buddy-agent.version>1.10.20</byte-buddy-agent.version>
     <objenesis.version>3.1</objenesis.version>
     <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
